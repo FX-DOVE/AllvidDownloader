@@ -1,4 +1,9 @@
 import youtubedl from 'yt-dlp-exec';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const QUALITY_FORMATS = {
   '720': 'best[height<=720][ext=mp4]/best[ext=mp4]/best',
@@ -8,17 +13,36 @@ const QUALITY_FORMATS = {
   'default': 'best'
 };
 
+const YT_DLP_PATH = path.join(__dirname, '../bin/yt-dlp');
+
 export const getVideoUrl = async (url, quality = 'default') => {
   const format = QUALITY_FORMATS[quality] || QUALITY_FORMATS['default'];
   try {
     const output = await youtubedl(url, {
       format: format,
-      getUrl: true
+      getUrl: true,
+      ytdlpPath: YT_DLP_PATH
     });
     const videoUrl = output.trim();
     if (!videoUrl) throw new Error('No downloadable video URL found');
     return videoUrl;
   } catch (error) {
     throw new Error('yt-dlp error: ' + error.message);
+  }
+};
+
+export const downloadVideo = async (url) => {
+  try {
+    const options = {
+      dumpSingleJson: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+      ytdlpPath: YT_DLP_PATH
+    };
+
+    const result = await youtubedl(url, options);
+    return result;
+  } catch (error) {
+    throw new Error(`Failed to download video: ${error.message}`);
   }
 }; 
