@@ -13,15 +13,12 @@ const QUALITY_FORMATS = {
   'default': 'best'
 };
 
-const YT_DLP_PATH = path.join(__dirname, '../bin/yt-dlp');
-
 export const getVideoUrl = async (url, quality = 'default') => {
   const format = QUALITY_FORMATS[quality] || QUALITY_FORMATS['default'];
   try {
     const output = await youtubedl(url, {
       format: format,
-      getUrl: true,
-      ytdlpPath: YT_DLP_PATH
+      getUrl: true
     });
     const videoUrl = output.trim();
     if (!videoUrl) throw new Error('No downloadable video URL found');
@@ -36,8 +33,7 @@ export const downloadVideo = async (url) => {
     const options = {
       dumpSingleJson: true,
       noWarnings: true,
-      preferFreeFormats: true,
-      ytdlpPath: YT_DLP_PATH
+      preferFreeFormats: true
     };
 
     const result = await youtubedl(url, options);
