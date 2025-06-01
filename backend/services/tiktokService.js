@@ -1,4 +1,4 @@
-import { execFile } from 'child_process';
+import youtubedl from 'yt-dlp-exec';
 
 const QUALITY_FORMATS = {
   '720': 'best[height<=720][ext=mp4]/best[ext=mp4]/best',
@@ -10,21 +10,15 @@ const QUALITY_FORMATS = {
 
 export const getVideoUrl = async (url, quality = 'default') => {
   const format = QUALITY_FORMATS[quality] || QUALITY_FORMATS['default'];
-  return new Promise((resolve, reject) => {
-    execFile(
-      'yt-dlp',
-      ['-f', format, '-g', url],
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error('yt-dlp error:', stderr || error);
-          return reject(new Error('TikTok video extraction failed: ' + (stderr || error.message)));
-        }
-        const videoUrl = stdout.trim();
-        if (!videoUrl) {
-          return reject(new Error('No downloadable video URL found'));
-        }
-        resolve(videoUrl);
-      }
-    );
-  });
+  try {
+    const output = await youtubedl(url, {
+      format: format,
+      getUrl: true
+    });
+    const videoUrl = output.trim();
+    if (!videoUrl) throw new Error('No downloadable video URL found');
+    return videoUrl;
+  } catch (error) {
+    throw new Error('yt-dlp error: ' + error.message);
+  }
 }; 
